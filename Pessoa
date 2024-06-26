@@ -1,0 +1,72 @@
+import java.util.ArrayList;
+import java.util.List;
+
+public class Pessoa extends CrudService {
+    private String id;
+    private String name;
+    private String age;
+
+    public Pessoa() {
+        super("pessoas.txt", new String[]{"id", "name", "age"});
+    }
+
+    public Pessoa(String id, String name, String age) {
+        super("pessoas.txt", new String[]{"id", "name", "age"});
+        this.id = id;
+        this.name = name;
+        this.age = age;
+    }
+
+    public Pessoa(String[] data) {
+        this(data[0], data[1], data[2]);
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getAge() {
+        return age;
+    }
+
+    public void setAge(String age) {
+        this.age = age;
+    }
+
+    @Override
+    protected String[] getDataArray() {
+        return new String[]{id, name, age};
+    }
+
+    public boolean save() {
+        return create(getDataArray());
+    }
+
+    public boolean update() {
+        return update(id, getDataArray());
+    }
+
+    public boolean delete() {
+        return delete(id);
+    }
+
+    public static Pessoa findById(String id) {
+        return CrudService.findById(Pessoa.class, id);
+    }
+
+    public static List<Pessoa> findAllPessoas() {
+        return CrudService.findAllRecords(Pessoa.class);
+    }
+}
