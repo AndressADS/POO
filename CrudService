@@ -1,0 +1,128 @@
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public abstract class CrudService {
+    protected String databaseName;
+    protected String[] columns;
+
+    public CrudService(String databaseName, String[] columns) {
+        this.databaseName = databaseName;
+        this.columns = columns;
+    }
+
+    public boolean create(String[] data) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(databaseName, true))) {
+            writer.write(String.join(",", data));
+            writer.newLine();
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean update(String id, String[] newData) {
+        List<String[]> records = findAllRecords();
+        boolean updated = false;
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(databaseName))) {
+            for (String[] record : records) {
+                if (record[0].equals(id)) {
+                    writer.write(String.join(",", newData));
+                    updated = true;
+                } else {
+                    writer.write(String.join(",", record));
+                }
+                writer.newLine();
+            }
+            return updated;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean update(String[] newData) {
+        String id = newData[0];
+        return update(id, newData);
+    }
+
+    public String[] find(String id) {
+        List<String[]> records = findAllRecords();
+
+        for (String[] record : records) {
+            if (record[0].equals(id)) {
+                return record;
+            }
+        }
+        return null;
+    }
+
+    public String[][] findAll() {
+        List<String[]> records = findAllRecords();
+        return records.toArray(new String[0][]);
+    }
+
+    public boolean delete(String id) {
+        List<String[]> records = findAllRecords();
+        boolean deleted = false;
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(databaseName))) {
+            for (String[] record : records) {
+                if (!record[0].equals(id)) {
+                    writer.write(String.join(",", record));
+                    writer.newLine();
+                } else {
+                    deleted = true;
+                }
+            }
+            return deleted;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private List<String[]> findAllRecords() {
+        List<String[]> records = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(databaseName))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                records.add(line.split(","));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return records;
+    }
+
+    protected abstract String[] getDataArray();
+
+    public static <T extends CrudService> T findById(Class<T> clazz, String id) {
+        try {
+            T instance = clazz.getDeclaredConstructor().newInstance();
+            String[] data = instance.find(id);
+            if (data != null) {
+                return clazz.getDeclaredConstructor(String[].class).newInstance((Object) data);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static <T extends CrudService> List<T> findAllRecords(Class<T> clazz) {
+        List<T> instances = new ArrayList<>();
+        try {
+            T instance = clazz.getDeclaredConstructor().newInstance();
+            String[][] allData = instance.findAll();
+            for (String[] data : allData) {
+                instances.add(clazz.getDeclaredConstructor(String[].class).newInstance((Object) data));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return instances;
+    }
+}
