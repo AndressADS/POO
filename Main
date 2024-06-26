@@ -1,0 +1,26 @@
+public class Main {
+    public static void main(String[] args) {
+        Pessoa p1 = new Pessoa("1", "João", "30");
+        p1.save();
+
+        Pessoa p2 = new Pessoa("2", "Maria", "25");
+        p2.save();
+
+        Pessoa found = Pessoa.findById("1");
+        if (found != null) {
+            System.out.println("Encontrado: " + found.getName());
+        } else {
+            System.out.println("Pessoa não encontrada");
+        }
+
+        p1.setAge("31");
+        p1.update();
+
+        List<Pessoa> pessoas = Pessoa.findAllPessoas();
+        for (Pessoa p : pessoas) {
+            System.out.println(p.getId() + ", " + p.getName() + ", " + p.getAge());
+        }
+
+        p1.delete();
+    }
+}
